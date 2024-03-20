@@ -1,5 +1,9 @@
+import os
+
 import keras_tuner
 import keras
+import tensorflow as tf
+from tensorflow.keras.models import load_model
 import numpy as np
 import pandas as pd
 from keras.src.applications.densenet import layers
@@ -41,6 +45,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 
 print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
 
+print(X_test)
 
 class MyHyperModel(keras_tuner.HyperModel):
 
@@ -127,9 +132,13 @@ metrics.FalsePositives(name="FP"),   # False Positives
 metrics.FalseNegatives(name="FN")    # False Negatives
 ])
 
-# Train the model
-history = model.fit(X_train, y_train, epochs=10, batch_size=32, validation_data=(X_test, y_test))
 
+logDir = "logs"
+tb_callback = tf.keras.callbacks.TensorBoard(log_dir=logDir)
+
+# Train the model
+#history = model.fit(X_train, y_train, epochs=10, batch_size=32, validation_data=(X_test, y_test), callbacks=[tb_callback])
+#model.save(os.path.join('models', 'diabetes.h5'))
 def round_class_prediction(prediction):
   if prediction <= 0.18:
     return 0
@@ -157,7 +166,16 @@ def evaluate_model_NN(model, X_test, y_test):
     return disp.plot()
 
 # Evaluate the model & plot the confusion matrix
-evaluate_model_NN(model, X_test, y_test)
+#evaluate_model_NN(model, X_test, y_test)
+
+
+newX = pd.read_csv('idknewcv.csv')
+newModel = load_model('models/diabetes.h5')
+Y_test_pred = newModel.predict(newX, verbose=0)
+print(Y_test_pred)
+print(round_class_prediction(Y_test_pred))
+print(newX)
+
 
 '''
 knn : 
