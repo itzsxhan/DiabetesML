@@ -1,16 +1,13 @@
-import flet as ft
 from flet import *
 from flet import TextField, Checkbox, ElevatedButton, Row, Text, Column
 from flet_core import Page, Container
 from flet_core.control_event import ControlEvent
-from flet_core.types import WEB_BROWSER
+import pandas as pd
+
+import Ai
 from checkBox import CustomCheckBox
-
-from chatBot import ChatMessage, Message
-
-from chatBot import *
-
-
+import random2
+from random2 import randint
 def main(page=ft.Page) -> None:
     blue = '#2d3140'
     lightBlue = '#e9fafc'
@@ -54,13 +51,26 @@ def main(page=ft.Page) -> None:
         scroll='auto',
         # controls=[Container(height= 100, width= 700, bgcolor= mediumBlue, border_radius= 45)]
     )
-    for i in range(10):
+    fitness_todo_list = [
+        "Go for a 30-minute jog",
+        "Do 20 push-ups",
+        "Stretch for 10 minutes",
+        "Drink 8 glasses of water",
+        "Prepare a healthy meal",
+        "Take a cycling class",
+        "Practice yoga for 15 minutes",
+        "Try a new healthy recipe",
+        "Do a HIIT workout",
+        "Get at least 7 hours of sleep"
+    ]
+
+    for i in fitness_todo_list:
         tasks.controls.append(
             Container(height=98,
                       width=700,
                       bgcolor=mediumBlue,
                       border_radius=45, padding=padding.only(left=20, top=25),
-                      content=CustomCheckBox(blue, size=50, stroke_width=7),
+                      content=Column(width=3,controls=[Text("Tasks:",color= coral, weight= FontWeight.BOLD,size=17),Row(controls=[CustomCheckBox(blue, stroke_width=5),Text(i, color=blue, size=20,font_family='PD',weight=FontWeight.BOLD)])]),
                       )
         )
 
@@ -81,95 +91,7 @@ def main(page=ft.Page) -> None:
             pages[page.route]
         )
 
-    def chat(chatPage: ft.Page):
-        chatPage.horizontal_alignment = "stretch"
-        chatPage.title = "Flet Chat"
 
-        def join_chat_click(e):
-            if not join_user_name.value:
-                join_user_name.error_text = "Name cannot be blank!"
-                join_user_name.update()
-            else:
-                chatPage.session.set("user_name", join_user_name.value)
-                chatPage.dialog.open = False
-                new_message.prefix = ft.Text(f"{join_user_name.value}: ")
-                chatPage.pubsub.send_all(
-                    Message(user_name=join_user_name.value, text=f"{join_user_name.value} has joined the chat.",
-                            message_type="login_message"))
-                chatPage.update()
-
-        def send_message_click(e):
-            if new_message.value != "":
-                chatPage.pubsub.send_all(
-                    Message(chatPage.session.get("user_name"), new_message.value, message_type="chat_message"))
-                new_message.value = ""
-                new_message.focus()
-                chatPage.update()
-
-        def on_message(message: Message):
-            if message.message_type == "chat_message":
-                m = ChatMessage(message)
-            elif message.message_type == "login_message":
-                m = ft.Text(message.text, italic=True, color=ft.colors.BLACK45, size=12)
-            chat.controls.append(m)
-            chatPage.update()
-
-        chatPage.pubsub.subscribe(on_message)
-
-        # A dialog asking for a user display name
-        join_user_name = ft.TextField(
-            label="Enter your name to join the chat",
-            autofocus=True,
-            on_submit=join_chat_click,
-        )
-        chatPage.dialog = ft.AlertDialog(
-            open=True,
-            modal=True,
-            title=ft.Text("Welcome!"),
-            content=ft.Column([join_user_name], width=300, height=70, tight=True),
-            actions=[ft.ElevatedButton(text="Join chat", on_click=join_chat_click)],
-            actions_alignment="end",
-        )
-
-        # Chat messages
-        chat = ft.ListView(
-            expand=True,
-            spacing=10,
-            auto_scroll=True,
-        )
-
-        # A new message entry form
-        new_message = ft.TextField(
-            hint_text="Write a message...",
-            autofocus=True,
-            shift_enter=True,
-            min_lines=1,
-            max_lines=5,
-            filled=True,
-            expand=True,
-            on_submit=send_message_click,
-        )
-
-        # Add everything to the page
-        chatPage.add(
-            ft.Container(
-                content=chat,
-                border=ft.border.all(1, ft.colors.OUTLINE),
-                border_radius=5,
-                padding=10,
-                expand=True,
-            ),
-            ft.Row(
-                [
-                    new_message,
-                    ft.IconButton(
-                        icon=ft.icons.SEND_ROUNDED,
-                        tooltip="Send message",
-                        on_click=send_message_click,
-                    ),
-                ]
-            ),
-        )
 
     circle = Stack(
         controls=[
@@ -211,13 +133,53 @@ def main(page=ft.Page) -> None:
         ]
     )
 
+    circle2 = Stack(
+        controls=[
+            Container(
+                width=80,
+                height=80,
+                border_radius=50,
+                bgcolor='white12'
+            ),
+            Container(
+                gradient=SweepGradient(
+                    center=alignment.center,
+                    start_angle=0.0,
+                    end_angle=3,
+                    stops=[0.5, 0.5],
+                    colors=['#00000000', coral],
+                ),
+                width=80,
+                height=80,
+                border_radius=50,
+                content=Row(alignment='center',
+                            controls=[
+                                Container(padding=padding.all(5),
+                                          bgcolor=blue,
+                                          width=90, height=90,
+                                          border_radius=50,
+                                          content=Container(bgcolor=lightBlue,
+                                                            height=60, width=60,
+                                                            border_radius=40,
+                                                            content=CircleAvatar(opacity=0.8,
+                                                                                 foreground_image_url="https://img.freepik.com/free-vector/doctor-character-background_1270-84.jpg?size=338&ext=jpg&ga=GA1.1.735520172.1710979200&semt=ais"
+                                                                                 )
+                                                            )
+                                          )
+                            ],
+                            ),
+            ),
+
+        ]
+    )
+
     categories = Row()
 
     contact = FloatingActionButton(width=190, bgcolor=blue, height=130, text="Get Help",
-                                   on_click=lambda _: page.go('/message'))
+                                   on_click=lambda _: page.go('/messageBox'))
 
     meal_plan = FloatingActionButton(width=190, bgcolor=blue, height=130, text="Meal Plan",
-                                     on_click=lambda _: page.go('/create_task'))
+                                     on_click=lambda _: page.go('/meal'))
 
     selfDiagnosis = FloatingActionButton(width=190, height=130, bgcolor=blue, text="Self Diabetes Check",
                                          on_click=lambda _: page.go('/create_task'))
@@ -270,6 +232,9 @@ def main(page=ft.Page) -> None:
     features = ['HighBP', 'High Cholesterol', 'Stroke', ' Risk of Heart Disease or Attack',
                 'Physical Activity', 'Fruit Consumption', 'Calorie Intake', 'Heavy Alcohol Consumption']
 
+
+
+
     for j in features:
         vitals.controls.append(
             Container(
@@ -283,11 +248,11 @@ def main(page=ft.Page) -> None:
                         Text('vital'),
                         Text(j),
                         Container(
-                            width=160,
+                            width= random2.randint(25,160),
                             height=5,
                             bgcolor= coral,
                             border_radius=20,
-                            padding=padding.only(right=i * 30),
+                            padding=padding.only(right=j * 30),
                             content=Container(
                                 bgcolor=coral,
                             ),
@@ -350,6 +315,74 @@ def main(page=ft.Page) -> None:
                           content=Icon(icons.FULLSCREEN_EXIT_SHARP))
     )
 
+    doctorContacts = Column(height=800, scroll=ScrollMode.AUTO)
+
+
+
+
+
+
+    # List of example doctor information
+    doctor_info_list = [
+        "  Name: Dr. John Smith\nSpecialty: Cardiology\nExperience: 15 years\nLocation: New York",
+        "  Name: Dr. Sarah Johnson\nSpecialty: Pediatrics\nExperience: 10 years\nLocation: Los Angeles",
+        "  Name: Dr. Michael Lee\nSpecialty: Dermatology\nExperience: 12 years\nLocation: Chicago",
+        "  Name: Dr. Emily Wang\nSpecialty: Psychiatry\nExperience: 8 years\nLocation: San Francisco",
+        "  Name: Dr. David Brown\nSpecialty: Orthopedics\nExperience: 20 years\nLocation: Houston",
+        "  Name: Dr. Jennifer Martinez\nSpecialty: Obstetrics & Gynecology\nExperience: 18 years\nLocation: Miami",
+        "  Name: Dr. William Taylor\nSpecialty: Ophthalmology\nExperience: 14 years\nLocation: Boston",
+        "  Name: Dr. Jessica Chen\nSpecialty: Neurology\nExperience: 11 years\nLocation: Seattle",
+        "  Name: Dr. Andrew Rodriguez\nSpecialty: Family Medicine\nExperience: 9 years\nLocation: Dallas",
+        "  Name: Dr. Samantha White\nSpecialty: Endocrinology\nExperience: 13 years\nLocation: Atlanta"
+    ]
+
+    # Dictionary to store doctor information
+    doctors_dict = {}
+
+    # Generating 10 different doctor information pages
+    for i in range(10):
+        random_index = random2.randint(0, len(doctor_info_list) - 1)
+        doctor_info = doctor_info_list[random_index]
+        doctors_dict[f"Doctor {i + 1}"] = doctor_info
+
+    for doctor in range(10):
+        doctorContacts.controls.append(
+            Container(height=150,width=650,content=Row(alignment=MainAxisAlignment.CENTER,controls=[Container(height=150,
+                                    width=270,
+                                    bgcolor=blue,
+                                    border_radius=35,
+                                    content=Row(controls=[circle2,Text(doctors_dict[f"Doctor {random2.randint(1,10)}"])])),Container(height=150,
+                                    width=270,
+                                    bgcolor=blue,
+                                    border_radius=35,
+                                    content=Row(controls=[circle2,Text(doctors_dict[f"Doctor {random2.randint(1,10)}"])]))]))
+        )
+    messageBox = Container(
+        content=Container(on_click=lambda _: page.go('/'),
+                          height=900,
+                          width=650,
+                          content=Row(controls=[Icon(icons.FULLSCREEN_EXIT_SHARP), Column(controls=[Container(width=650,
+                                                                                                              height=900,
+                                                                                                              bgcolor=lightBlue,
+                                                                                                              border_radius=35,
+                                                                                                              content=Column(controls=[Text('         Contacts: ',size=50,color=blue,font_family='Merriweather',weight=FontWeight.BOLD),doctorContacts]))])],
+                                      height=900,
+                                      width=650))
+    )
+
+    df = pd.read_csv('accountInfo.csv')
+    meal = Ai.ask_gpt(f"give me a meal plan, and use this dataset to make it specific to me{df}")
+    print(meal)
+
+    meal_plan  = Container(
+        content=Container(on_click=lambda _: page.go('/'),
+                          height=900,
+                          width=650,
+                          content=Row(controls=[Icon(icons.FULLSCREEN_EXIT_SHARP),Container(height=800,width=600,content=Text(meal,size=15))]))
+    )
+
+
+
     pages = {
         '/': View(
             "/",
@@ -364,7 +397,8 @@ def main(page=ft.Page) -> None:
                 create_task_view
             ]
         ),
-        '/message': View('/message', [chat(page)])
+        '/messageBox': View( "/messageBox",[messageBox]),
+        '/meal': View("/meal", [meal_plan])
 
     }
 
@@ -390,5 +424,3 @@ def main(page=ft.Page) -> None:
 
 if __name__ == '__main__':
     ft.app(target=main)
-
-
