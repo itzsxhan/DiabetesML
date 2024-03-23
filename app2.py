@@ -1,4 +1,5 @@
 import flet as ft
+import Ai
 
 class Message():
     def __init__(self, user_name: str, text: str, message_type: str):
@@ -19,7 +20,7 @@ class ChatMessage(ft.Row):
                 ft.Column(
                     [
                         ft.Text(message.user_name, weight="bold"),
-                        ft.Text(message.text, selectable=True),
+                        ft.Text(message.text, selectable=True, width=300),
                     ],
                     tight=True,
                     spacing=5,
@@ -50,27 +51,31 @@ class ChatMessage(ft.Row):
         ]
         return colors_lookup[hash(user_name) % len(colors_lookup)]
 
-def chat(chatPage: ft.Page) -> None:
-    chatPage.horizontal_alignment = "stretch"
-    chatPage.title = "Flet Chat"
+def chatBox(page:ft.Page):
+    page.horizontal_alignment = "stretch"
+    page.title = "Flet Chat"
 
     def join_chat_click(e):
         if not join_user_name.value:
             join_user_name.error_text = "Name cannot be blank!"
             join_user_name.update()
         else:
-            chatPage.session.set("user_name", join_user_name.value)
-            chatPage.dialog.open = False
+            page.session.set("user_name", join_user_name.value)
+            page.dialog.open = False
             new_message.prefix = ft.Text(f"{join_user_name.value}: ")
-            chatPage.pubsub.send_all(Message(user_name=join_user_name.value, text=f"{join_user_name.value} has joined the chat.", message_type="login_message"))
-            chatPage.update()
+            page.pubsub.send_all(Message(user_name=join_user_name.value, text=f"{join_user_name.value} has joined the chat.", message_type="login_message"))
+            page.update()
 
     def send_message_click(e):
         if new_message.value != "":
-            chatPage.pubsub.send_all(Message(chatPage.session.get("user_name"), new_message.value, message_type="chat_message"))
+            page.pubsub.send_all(Message(page.session.get("user_name"), new_message.value, message_type="chat_message"))
+            respo = Ai.ask_gpt(new_message.value)
+            page.pubsub.send_all(Message("MedStat",respo, message_type="chat_message"))
+            print(respo)
             new_message.value = ""
             new_message.focus()
-            chatPage.update()
+            page.update()
+
 
     def on_message(message: Message):
         if message.message_type == "chat_message":
@@ -78,9 +83,11 @@ def chat(chatPage: ft.Page) -> None:
         elif message.message_type == "login_message":
             m = ft.Text(message.text, italic=True, color=ft.colors.BLACK45, size=12)
         chat.controls.append(m)
-        chatPage.update()
+        page.update()
 
-    chatPage.pubsub.subscribe(on_message)
+
+
+    page.pubsub.subscribe(on_message)
 
     # A dialog asking for a user display name
     join_user_name = ft.TextField(
@@ -88,7 +95,7 @@ def chat(chatPage: ft.Page) -> None:
         autofocus=True,
         on_submit=join_chat_click,
     )
-    chatPage.dialog = ft.AlertDialog(
+    page.dialog = ft.AlertDialog(
         open=True,
         modal=True,
         title=ft.Text("Welcome!"),
@@ -117,7 +124,7 @@ def chat(chatPage: ft.Page) -> None:
     )
 
     # Add everything to the page
-    chatPage.add(
+    page.add(
         ft.Container(
             content=chat,
             border=ft.border.all(1, ft.colors.OUTLINE),
@@ -137,4 +144,5 @@ def chat(chatPage: ft.Page) -> None:
         ),
     )
 
-ft.app(target=chat)
+
+ft.app(target=chatBox)
