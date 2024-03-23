@@ -1,10 +1,11 @@
 from flet import *
+import flet as ft
 from flet import TextField, Checkbox, ElevatedButton, Row, Text, Column
 from flet_core import Page, Container
 from flet_core.control_event import ControlEvent
 import pandas as pd
 
-import Ai
+import Main
 from checkBox import CustomCheckBox
 import random2
 from random2 import randint
@@ -13,23 +14,26 @@ def main(page=ft.Page) -> None:
     lightBlue = '#e9fafc'
     mediumBlue = "#a7bfd7"
     coral = '#d17255'
+    gold = '#E0B15E'
+    lightGold = '#FFFAEB'
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
 
     username: TextField = TextField(label="Username", text_align=ft.TextAlign.LEFT, width=350)
     password: TextField = TextField(label="Password", text_align=ft.TextAlign.LEFT, width=350, password=True)
-    signUp: Checkbox = Checkbox(label="I agree to stuff", value=False)
+    signUp: Checkbox = Checkbox(label="I agree to terms and conditions", value=False)
     submitButton: ElevatedButton = ElevatedButton(text='Sign up', width=200, disabled=True)
 
     page.title = 'Medicure'
     page.fonts = {
         'PD': 'Playfair Display'
     }
-    page.add(Text("MEDI", size=70, font_family='PD', weight=ft.FontWeight.BOLD, color='yellow',
 
-                  spans=[ft.TextSpan("CURE", ft.TextStyle(font_family='Arial', size=70, weight=ft.FontWeight.BOLD))],
+    page.add(Text("MED", size=70, font_family='PD', weight=ft.FontWeight.BOLD, color=gold,
+
+                  spans=[ft.TextSpan("STAT", ft.TextStyle(font_family='Canva Sans', size=70, weight=ft.FontWeight.BOLD,
+                                                          color='white'))],
                   text_align=ft.TextAlign.CENTER))
-
     page.theme_mode = ft.ThemeMode.DARK
     page.window_width = 725
     page.window_height = 1000
@@ -63,6 +67,7 @@ def main(page=ft.Page) -> None:
         "Do a HIIT workout",
         "Get at least 7 hours of sleep"
     ]
+
 
     for i in fitness_todo_list:
         tasks.controls.append(
@@ -181,7 +186,7 @@ def main(page=ft.Page) -> None:
     meal_plan = FloatingActionButton(width=190, bgcolor=blue, height=130, text="Meal Plan",
                                      on_click=lambda _: page.go('/meal'))
 
-    selfDiagnosis = FloatingActionButton(width=190, height=130, bgcolor=blue, text="Self Diabetes Check",
+    selfDiagnosis = FloatingActionButton(width=190, height=130, bgcolor=blue, text="AI-Assistance",
                                          on_click=lambda _: page.go('/create_task'))
 
     categorical_List = [contact, meal_plan, selfDiagnosis]
@@ -229,7 +234,7 @@ def main(page=ft.Page) -> None:
 
     vitals = Column(height=350, scroll='auto')
 
-    features = ['HighBP', 'High Cholesterol', 'Stroke', ' Risk of Heart Disease or Attack',
+    features = ["BMI", "Weight","Height",
                 'Physical Activity', 'Fruit Consumption', 'Calorie Intake', 'Heavy Alcohol Consumption']
 
 
@@ -245,8 +250,7 @@ def main(page=ft.Page) -> None:
                 padding=15,
                 content=Column(
                     controls=[
-                        Text('vital'),
-                        Text(j),
+                        Text(j,font_family='PD',weight=FontWeight.BOLD),
                         Container(
                             width= random2.randint(25,160),
                             height=5,
@@ -370,9 +374,8 @@ def main(page=ft.Page) -> None:
                                       width=650))
     )
 
-    df = pd.read_csv('accountInfo.csv')
-    meal = Ai.ask_gpt(f"give me a meal plan, and use this dataset to make it specific to me{df}")
-    print(meal)
+    df = pd.read_csv('idknewcv.csv')
+    meal = Main.ask_gpt(f"give me a meal plan, and use this dataset to make it specific to me{df}")
 
     meal_plan  = Container(
         content=Container(on_click=lambda _: page.go('/'),
